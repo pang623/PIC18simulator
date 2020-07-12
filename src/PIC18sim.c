@@ -40,27 +40,27 @@ int8_t fileRegisters[0x1000];
  */
 
 int add(int v1, int v2) {
-  int result;
-  int nibbleAddLow;
-  int nibbleAddHigh;
+  int result = v1 + v2;
   int lowNibble_v1 = v1 & 0x0F;
   int lowNibble_v2 = v2 & 0x0F;
   int highNibble_v1 = (v1 & 0xF0) >> 4;
   int highNibble_v2 = (v2 & 0xF0) >> 4;
-  result = v1 + v2;
-  nibbleAddLow = lowNibble_v1 + lowNibble_v2;
+  int nibbleAddLow = lowNibble_v1 + lowNibble_v2;
+  int nibbleAddHigh;
+
   if(nibbleAddLow > 0xF)
     nibbleAddHigh = highNibble_v1 + highNibble_v2 + 1;
   else
     nibbleAddHigh = highNibble_v1 + highNibble_v2;
-  //adjust status flags
+  
+  //Clear status flags
   status = 0x00;
 
   if((int8_t)result == 0x00)
     status |= STATUS_Z;      //Set Z flag to 1
   if(result & 0x80)
     status |= STATUS_N;      //Set N flag to 1
-  if(result > 0xFF || nibbleAddHigh > 0xF)
+  if(nibbleAddHigh > 0xF)
     status |= STATUS_C;      //Set C flag to 1
   if(nibbleAddLow > 0xF)
     status |= STATUS_DC;     //Set DC flag to 1
