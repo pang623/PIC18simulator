@@ -55,7 +55,7 @@ File Register (f):    range from 0 to 255
 */
 
 //addwf   0x45, f, ACCESS   ==> 0010 0110 0100 0101(0x2645)
-void test_executeInstruction_given_0x2645_expect_addwf_called(void) {
+void test_executeInstruction_given_0x2645_expect_addwf_called_and_access_to_0x45_with_the_result_stored_in_fileRegister(void) {
   //Setup test fixture
   uint8_t codeMemory[] = {0x45, 0x26, 0x00, 0xff};
   //Set WREG
@@ -73,7 +73,7 @@ void test_executeInstruction_given_0x2645_expect_addwf_called(void) {
 }
 
 //addwf   0x23, w, ACCESS   ==> 0010 0100 0010 0011(0x2423)
-void test_executeInstruction_given_0x2423_expect_addwf_called(void) {
+void test_executeInstruction_given_0x2423_expect_addwf_called_and_access_to_0x23_with_the_result_stored_in_wreg(void) {
   //Setup test fixture
   uint8_t codeMemory[] = {0x23, 0x24, 0x00, 0xff};
   //Set WREG
@@ -92,7 +92,7 @@ void test_executeInstruction_given_0x2423_expect_addwf_called(void) {
 
 //  0010 01da ffff ffff
 //addwf   0x67, f, ACCESS   ==> 0010 0110 0110 0111(0x2667)
-void test_executeInstruction_given_0x2667_expect_addwf_called(void) {
+void test_executeInstruction_given_0x2667_expect_addwf_called_and_access_to_0xf67_with_the_result_stored_in_fileRegister(void) {
   //Setup test fixture
   uint8_t codeMemory[] = {0x67, 0x26, 0x00, 0xff};
   //Set WREG
@@ -111,7 +111,7 @@ void test_executeInstruction_given_0x2667_expect_addwf_called(void) {
 
 //  0010 01da ffff ffff
 //addwf   0x8F, w, ACCESS   ==> 0010 0100 1000 1111(0x248F)
-void test_executeInstruction_given_0x248F_expect_addwf_called(void) {
+void test_executeInstruction_given_0x248F_expect_addwf_called_and_access_to_0xf8f_with_the_result_stored_in_wreg(void) {
   //Setup test fixture
   uint8_t codeMemory[] = {0x8F, 0x24, 0x00, 0xff};
   //Set WREG
@@ -131,7 +131,7 @@ void test_executeInstruction_given_0x248F_expect_addwf_called(void) {
 
 //  0010 01da ffff ffff
 //addwf   0xA5, f, BANKED   ==> 0010 0111 1010 0101(0x27A5)
-void test_executeInstruction_given_0x27A5_expect_addwf_called(void) {
+void test_executeInstruction_given_0x27A5_expect_addwf_called_and_access_to_0x8A5_with_the_result_stored_in_fileRegister(void) {
   //Setup test fixture
   uint8_t codeMemory[] = {0xA5, 0x27, 0x00, 0xff};
   //Set BSR
@@ -152,7 +152,7 @@ void test_executeInstruction_given_0x27A5_expect_addwf_called(void) {
 
 //  0010 01da ffff ffff
 //addwf   0x7D, w, BANKED   ==> 0010 0101 0111 1101(0x257D)
-void test_executeInstruction_given_0x257D_expect_addwf_called(void) {
+void test_executeInstruction_given_0x257D_expect_addwf_called_and_access_to_0xB7D_with_the_result_stored_in_wreg(void) {
   //Setup test fixture
   uint8_t codeMemory[] = {0x7D, 0x25, 0x00, 0xff};
   //Set BSR
@@ -625,7 +625,200 @@ void test_executeInstruction_given_0x93BE_expect_bcf_called(void) {
 
 //----------------------------TEST BN---------------------------------
 
+/*
+Relative address    (n):  -128 to 127
+
+Mnemonic: bn n
+Opcode: 1110 0110 nnnn nnnn
+
+  n is the number of lines of instruction that need to be jumped
+  
+*/
+
+//test for jumping forward
+//  PC
+// 0x54   bn   0x5C   ==> 1110 0110 0000 0011(0xE603)
+void test_executeInstruction_given_0xE603_and_PC_at_0x54_and_NEGATIVE_bit_is_high_expect_bn_called_and_PC_is_0x5C(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x03, 0xE6, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x54;
+  //Set status flag (negative)
+  status = STATUS_N;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x5C, pcl);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);     //test that bn do not affect status flags
+}
+
+//test for jumping forward (whole range)
+//  PC
+// 0x00   bn   0xFE   ==> 1110 0110 0111 1110(0xE67E)
+void test_executeInstruction_given_0xE67E_and_PC_at_0x00_and_NEGATIVE_bit_is_high_expect_bn_called_and_PC_is_0xFE(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x7E, 0xE6, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x00;
+  //Set status flag (negative)
+  status = STATUS_N;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xFE, pcl);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);     //test that bn do not affect status flags
+}
+
+//test for jumping backwards
+//  PC
+// 0x6E   bn   0x20   ==> 1110 0110 1101 1000(0xE6D8)
+void test_executeInstruction_given_0xE6D8_and_PC_at_0x6E_and_NEGATIVE_bit_is_high_expect_bn_called_and_PC_is_0x20(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0xD8, 0xE6, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x6E;
+  //Set status flag (negative)
+  status = STATUS_N;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x20, pcl);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);     //test that bn do not affect status flags
+}
+
+//test for jumping backwards (whole range)
+//  PC
+// 0xFE   bn   0x00   ==> 1110 0110 1000 0000(0xE680)
+void test_executeInstruction_given_0xE680_and_PC_at_0xFE_and_NEGATIVE_bit_is_high_expect_bn_called_and_PC_is_0x00(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x80, 0xE6, 0x00, 0xff};
+  //Set PCL
+  pcl = 0xFE;
+  //Set status flag (negative)
+  status = STATUS_N;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x00, pcl);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);     //test that bn do not affect status flags
+}
+
+//test when NEGATIVE bit is low, BN will not jump to target address, it continues to the next instruction instead, which causes PC to +2
+//  PC
+// 0xB2   bn   0xC4   ==> 1110 0110 0000 1000(0xE608)
+void test_executeInstruction_given_0xE608_and_PC_at_0xB2_and_NEGATIVE_bit_is_low_expect_bn_called_and_PC_is_0xB4(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x08, 0xE6, 0x00, 0xff};
+  //Set PCL
+  pcl = 0xB2;
+  //Clear status flag (negative)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xB4, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bn do not affect status flags
+}
+
 //----------------------------TEST BNZ---------------------------------
+
+/*
+Relative address    (n):  -128 to 127
+
+Mnemonic: bnz n
+Opcode: 1110 0001 nnnn nnnn
+
+  n is the number of lines of instruction that need to be jumped
+  
+*/
+
+//test for jumping forward
+//  PC
+// 0x8E   bnz   0xA4   ==> 1110 0001 0000 1010(0xE10A)
+void test_executeInstruction_given_0xE10A_and_PC_at_0x8E_and_ZERO_bit_is_low_expect_bnz_called_and_PC_is_0xA4(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x0A, 0xE1, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x8E;
+  //Clear status flag (zero)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xA4, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+}
+
+//test for jumping forward (whole range)
+//  PC
+// 0x00   bnz   0xFE   ==> 1110 0001 0111 1110(0xE17E)
+void test_executeInstruction_given_0xE17E_and_PC_at_0x00_and_ZERO_bit_is_low_expect_bnz_called_and_PC_is_0xFE(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x7E, 0xE1, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x00;
+  //Clear status flag (zero)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xFE, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+}
+
+//test for jumping backwards
+//  PC
+// 0xFA   bnz   0xDC   ==> 1110 0001 1111 0000(0xE1F0)
+void test_executeInstruction_given_0xE1F0_and_PC_at_0xFA_and_ZERO_bit_is_low_expect_bnz_called_and_PC_is_0xDC(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0xF0, 0xE1, 0x00, 0xff};
+  //Set PCL
+  pcl = 0xFA;
+  //Clear status flag (zero)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xDC, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+}
+
+//test for jumping backwards (whole range)
+//  PC
+// 0xFE   bnz   0x00   ==> 1110 0001 1000 0000(0xE180)
+void test_executeInstruction_given_0xE180_and_PC_at_0xFE_and_ZERO_bit_is_low_expect_bnz_called_and_PC_is_0x00(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x80, 0xE1, 0x00, 0xff};
+  //Set PCL
+  pcl = 0xFE;
+  //Clear status flag (zero)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x00, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+}
+
+//test when ZERO bit is high, BNZ will not jump to target address, it continues to the next instruction instead, which causes PC to +2
+//  PC
+// 0xB2   bnz   0xC4   ==> 1110 0110 0000 1000(0xE108)
+void test_executeInstruction_given_0xE108_and_PC_at_0xB2_and_ZERO_bit_is_high_expect_bnz_called_and_PC_is_0xB4(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x08, 0xE1, 0x00, 0xff};
+  //Set PCL
+  pcl = 0xB2;
+  //Set status flag (zero)
+  status = STATUS_Z;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xB4, pcl);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);         //test that bnz do not affect status flags
+}
+
+
+
 
 //----------------------------TEST BNOV---------------------------------
 

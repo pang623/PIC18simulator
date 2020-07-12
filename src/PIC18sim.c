@@ -267,14 +267,34 @@ uint8_t *bcf(uint8_t *codePtr) {
   return NULL;
 }
 
-uint8_t *bn(uint8_t *codePtr) {
+/*
+Relative address    (n):  -128 to 127
 
+Mnemonic: bn n
+Opcode: 1110 0110 nnnn nnnn
+*/
+
+uint8_t *bn(uint8_t *codePtr) {
   //execute instruction
+  int8_t n = codePtr[0]; 
+  
+  if(status & 0x10)
+    pcl = pcl + 2 + 2*n;
+  else
+    pcl = pcl + 2;
+  
   return NULL;
 }
 
 uint8_t *bnz(uint8_t *codePtr) {
   //execute instruction
+  int8_t n = codePtr[0]; 
+  
+  if(status & 0x04)
+    pcl = pcl + 2;
+  else
+    pcl = pcl + 2 + 2*n;
+  
   return NULL;
 }
 
@@ -379,7 +399,34 @@ uint8_t *rlcf(uint8_t *codePtr) {
   }
 
   int shiftL = (int8_t)fileRegisters[addr];
-
+  
+  if(d) {
+    fileRegisters[addr] = shiftL << 1;
+    if(status & 0x01)
+      fileRegisters[addr] |= 0x01;
+      if(fileRegisters[addr] == 0)
+         status |= STATUS_Z;
+      if(fileRegisters[addr] & 0x80)
+         status |= STATUS_N;
+  }
+  else {
+    wreg = shiftL << 1;
+    if(status & 0x01)
+      wreg |= 0x01;
+      if(wreg == 0)
+         status |= STATUS_Z;
+      if(wreg & 0x80)
+         status |= STATUS_N;
+  }
+  
+  if(shiftL & 0x80)
+       status |= STATUS_C;
+  else
+       status &= 0xFE;
+     
+ return NULL;
+}
+/*
    if(!(status & 0x01)) {
      if(d) {
        fileRegisters[addr] = shiftL << 1;
@@ -420,4 +467,5 @@ uint8_t *rlcf(uint8_t *codePtr) {
        status &= 0xFE;
    }
   return NULL;
-}
+  */
+
