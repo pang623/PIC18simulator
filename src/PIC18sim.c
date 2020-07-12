@@ -286,6 +286,11 @@ uint8_t *bn(uint8_t *codePtr) {
   return NULL;
 }
 
+/*
+Mnemonic: bnz n
+Opcode: 1110 0001 nnnn nnnn
+*/
+
 uint8_t *bnz(uint8_t *codePtr) {
   //execute instruction
   int8_t n = codePtr[0]; 
@@ -298,8 +303,20 @@ uint8_t *bnz(uint8_t *codePtr) {
   return NULL;
 }
 
+/*
+Mnemonic: bnov n
+Opcode: 1110 0101 nnnn nnnn
+*/
+
 uint8_t *bnov(uint8_t *codePtr) {
   //execute instruction
+  int8_t n = codePtr[0]; 
+  
+  if(status & 0x08)
+    pcl = pcl + 2;
+  else
+    pcl = pcl + 2 + 2*n;
+  
   return NULL;
 }
 
@@ -426,46 +443,3 @@ uint8_t *rlcf(uint8_t *codePtr) {
      
  return NULL;
 }
-/*
-   if(!(status & 0x01)) {
-     if(d) {
-       fileRegisters[addr] = shiftL << 1;
-       if(fileRegisters[addr] == 0)
-         status |= STATUS_Z;
-       if(fileRegisters[addr] & 0x80)
-         status |= STATUS_N;
-     }else {
-       wreg = shiftL << 1;
-       if(wreg == 0)
-         status |= STATUS_Z;
-       if(wreg & 0x80)
-         status |= STATUS_N;
-     }
-     if(shiftL & 0x80)
-       status |= STATUS_C;
-     else
-       status &= 0xFE;
-   }else {
-     if(d) {
-       fileRegisters[addr] = shiftL << 1;
-       fileRegisters[addr] |= 0x01;
-       if(fileRegisters[addr] == 0)
-         status |= STATUS_Z;
-       if(fileRegisters[addr] & 0x80)
-         status |= STATUS_N;
-     }else {
-       wreg = shiftL << 1;
-       wreg |= 0x01;
-       if(wreg == 0)
-         status |= STATUS_Z;
-       if(wreg & 0x80)
-         status |= STATUS_N;
-     }
-     if(shiftL & 0x80)
-       status |= STATUS_C;
-     else
-       status &= 0xFE;
-   }
-  return NULL;
-  */
-

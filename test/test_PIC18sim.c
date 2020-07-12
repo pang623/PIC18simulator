@@ -802,7 +802,7 @@ void test_executeInstruction_given_0xE180_and_PC_at_0xFE_and_ZERO_bit_is_low_exp
 
 //test when ZERO bit is high, BNZ will not jump to target address, it continues to the next instruction instead, which causes PC to +2
 //  PC
-// 0xB2   bnz   0xC4   ==> 1110 0110 0000 1000(0xE108)
+// 0xB2   bnz   0xC4   ==> 1110 0001 0000 1000(0xE108)
 void test_executeInstruction_given_0xE108_and_PC_at_0xB2_and_ZERO_bit_is_high_expect_bnz_called_and_PC_is_0xB4(void) {
   //Setup test fixture
   uint8_t codeMemory[] = {0x08, 0xE1, 0x00, 0xff};
@@ -817,10 +817,102 @@ void test_executeInstruction_given_0xE108_and_PC_at_0xB2_and_ZERO_bit_is_high_ex
   TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);         //test that bnz do not affect status flags
 }
 
-
-
-
 //----------------------------TEST BNOV---------------------------------
+
+/*
+Relative address    (n):  -128 to 127
+
+Mnemonic: bnov n
+Opcode: 1110 0101 nnnn nnnn
+
+  n is the number of lines of instruction that need to be jumped
+  
+*/
+
+//test for jumping forward
+//  PC
+// 0x24   bnov   0x70   ==> 1110 0101 0010 0101(0xE525)
+void test_executeInstruction_given_0xE525_and_PC_at_0x24_and_OV_bit_is_low_expect_bnov_called_and_PC_is_0x70(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x25, 0xE5, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x24;
+  //Clear status flag (overflow)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x70, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+}
+
+//test for jumping forward (whole range)
+//  PC
+// 0x00   bnov   0xFE   ==> 1110 0101 0111 1110(0xE57E)
+void test_executeInstruction_given_0xE57E_and_PC_at_0x00_and_OV_bit_is_low_expect_bnov_called_and_PC_is_0xFE(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x7E, 0xE5, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x00;
+  //Clear status flag (overflow)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xFE, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+}
+
+//test for jumping backwards
+//  PC
+// 0x3A   bnov   0x06   ==> 1110 0101 1110 0101(0xE5E5)
+void test_executeInstruction_given_0xE5E5_and_PC_at_0x3A_and_OV_bit_is_low_expect_bnov_called_and_PC_is_0x06(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0xE5, 0xE5, 0x00, 0xff};
+  //Set PCL
+  pcl = 0x3A;
+  //Clear status flag (overflow)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x06, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+}
+
+//test for jumping backwards (whole range)
+//  PC
+// 0xFE   bnov   0x00   ==> 1110 0101 1000 0000(0xE580)
+void test_executeInstruction_given_0xE580_and_PC_at_0xFE_and_OV_bit_is_low_expect_bnov_called_and_PC_is_0x00(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x80, 0xE5, 0x00, 0xff};
+  //Set PCL
+  pcl = 0xFE;
+  //Clear status flag (overflow)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x00, pcl);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+}
+
+//test when OV bit is high, BNOV will not jump to target address, it continues to the next instruction instead, which causes PC to +2
+//  PC
+// 0xB2   bnov   0xC4   ==> 1110 0101 0000 1000(0xE508)
+void test_executeInstruction_given_0xE508_and_PC_at_0xB2_and_OV_bit_is_high_expect_bnov_called_and_PC_is_0xB4(void) {
+  //Setup test fixture
+  uint8_t codeMemory[] = {0x08, 0xE5, 0x00, 0xff};
+  //Set PCL
+  pcl = 0xB2;
+  //Set status flag (overflow)
+  status = STATUS_OV;
+  //Run the code under test
+  executeInstruction(codeMemory);
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xB4, pcl);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_OV, status);         //test that bnov do not affect status flags
+}
 
 //----------------------------TEST MOVWF---------------------------------
 
