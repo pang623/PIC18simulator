@@ -52,7 +52,7 @@ int add(int v1, int v2) {
     nibbleAddHigh = highNibble_v1 + highNibble_v2 + 1;
   else
     nibbleAddHigh = highNibble_v1 + highNibble_v2;
-  
+
   //Clear status flags
   status = 0x00;
 
@@ -79,7 +79,7 @@ int add(int v1, int v2) {
 }
 
 /*
-          MEMORY
+           MEMORY
             data       address
              xx  (low)  0x100
 codePtr ---> 45         0x101
@@ -276,13 +276,13 @@ Opcode: 1110 0110 nnnn nnnn
 
 uint8_t *bn(uint8_t *codePtr) {
   //execute instruction
-  int8_t n = codePtr[0]; 
-  
+  int8_t n = codePtr[0];
+
   if(status & 0x10)
     pcl = pcl + 2 + 2*n;
   else
     pcl = pcl + 2;
-  
+
   return NULL;
 }
 
@@ -293,13 +293,13 @@ Opcode: 1110 0001 nnnn nnnn
 
 uint8_t *bnz(uint8_t *codePtr) {
   //execute instruction
-  int8_t n = codePtr[0]; 
-  
+  int8_t n = codePtr[0];
+
   if(status & 0x04)
     pcl = pcl + 2;
   else
     pcl = pcl + 2 + 2*n;
-  
+
   return NULL;
 }
 
@@ -310,13 +310,13 @@ Opcode: 1110 0101 nnnn nnnn
 
 uint8_t *bnov(uint8_t *codePtr) {
   //execute instruction
-  int8_t n = codePtr[0]; 
-  
+  int8_t n = codePtr[0];
+
   if(status & 0x08)
     pcl = pcl + 2;
   else
     pcl = pcl + 2 + 2*n;
-  
+
   return NULL;
 }
 
@@ -415,31 +415,31 @@ uint8_t *rlcf(uint8_t *codePtr) {
        addr += 0xf00;
   }
 
-  int shiftL = (int8_t)fileRegisters[addr];
-  
+  int shiftL = fileRegisters[addr];
+
   if(d) {
     fileRegisters[addr] = shiftL << 1;
     if(status & 0x01)
       fileRegisters[addr] |= 0x01;
-      if(fileRegisters[addr] == 0)
-         status |= STATUS_Z;
-      if(fileRegisters[addr] & 0x80)
-         status |= STATUS_N;
+    if(fileRegisters[addr] == 0)
+      status |= STATUS_Z;
+    if(fileRegisters[addr] & 0x80)
+      status |= STATUS_N;
   }
   else {
     wreg = shiftL << 1;
     if(status & 0x01)
       wreg |= 0x01;
-      if(wreg == 0)
-         status |= STATUS_Z;
-      if(wreg & 0x80)
-         status |= STATUS_N;
+    if(wreg == 0)
+      status |= STATUS_Z;
+    if(wreg & 0x80)
+      status |= STATUS_N;
   }
-  
+
   if(shiftL & 0x80)
        status |= STATUS_C;
   else
        status &= 0xFE;
-     
+
  return NULL;
 }

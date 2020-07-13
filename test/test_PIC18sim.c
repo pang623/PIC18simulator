@@ -87,7 +87,7 @@ void test_executeInstruction_given_0x2645_expect_addwf_called_and_access_to_0x45
   fileRegisters[0x245] = 0x00;
   fileRegisters[0xF45] = 0x00;
   //Run the code under test
-  executeInstruction(codeMemory);       
+  executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x79, fileRegisters[0x45]);
   TEST_ASSERT_EQUAL_HEX8(0x23, wreg);
@@ -655,11 +655,11 @@ Mnemonic: bn n
 Opcode: 1110 0110 nnnn nnnn
 
   n is the number of lines of instruction that need to be jumped
-  
+
     PC    Opcode     Operands
 |- 0x54    E603      bn 0x5C
 |  0x56     ...       ...
-|   .       
+|   .
 |   .
 |->0x5C
 
@@ -759,7 +759,7 @@ Mnemonic: bnz n
 Opcode: 1110 0001 nnnn nnnn
 
   n is the number of lines of instruction that need to be jumped
-  
+
 */
 
 //test for jumping forward
@@ -856,7 +856,7 @@ Mnemonic: bnov n
 Opcode: 1110 0101 nnnn nnnn
 
   n is the number of lines of instruction that need to be jumped
-  
+
 */
 
 //test for jumping forward
