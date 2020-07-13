@@ -344,9 +344,9 @@ void test_executeInstruction_given_0x6A2E_expect_clrf_called_and_access_to_0x2E_
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0x2E]);
-  TEST_ASSERT_EQUAL_HEX8(0x33, fileRegisters[0x12E]);     //test whether the clrf instruction clears the correct file register
+  TEST_ASSERT_EQUAL_HEX8(0x33, fileRegisters[0x12E]);       //test whether the clrf instruction clears the correct file register
   TEST_ASSERT_EQUAL_HEX8(0x44, fileRegisters[0xF2E]);
-  TEST_ASSERT_EQUAL_HEX8(0x1F, wreg);                     //data stored in wreg is unaffected by clrf instruction
+  TEST_ASSERT_EQUAL_HEX8(0x1F, wreg);                       //data stored in wreg is unaffected by clrf instruction
   TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);
 }
 
@@ -776,7 +776,7 @@ void test_executeInstruction_given_0xE10A_and_PC_at_0x8E_and_ZERO_bit_is_low_exp
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xA4, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
 }
 
 //test for jumping forward (whole range)
@@ -793,7 +793,7 @@ void test_executeInstruction_given_0xE17E_and_PC_at_0x00_and_ZERO_bit_is_low_exp
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xFE, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
 }
 
 //test for jumping backwards
@@ -810,7 +810,7 @@ void test_executeInstruction_given_0xE1F0_and_PC_at_0xFA_and_ZERO_bit_is_low_exp
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xDC, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
 }
 
 //test for jumping backwards (whole range)
@@ -827,7 +827,7 @@ void test_executeInstruction_given_0xE180_and_PC_at_0xFE_and_ZERO_bit_is_low_exp
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x00, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnz do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
 }
 
 //test when ZERO bit is high, BNZ will not jump to target address, it continues to the next instruction instead, which causes PC to +2
@@ -844,7 +844,7 @@ void test_executeInstruction_given_0xE108_and_PC_at_0xB2_and_ZERO_bit_is_high_ex
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xB4, pcl);
-  TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);         //test that bnz do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);     //test that bnz do not affect status flags
 }
 
 //----------------------------TEST BNOV---------------------------------
@@ -873,7 +873,7 @@ void test_executeInstruction_given_0xE525_and_PC_at_0x24_and_OV_bit_is_low_expec
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x70, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnov do not affect status flags
 }
 
 //test for jumping forward (whole range)
@@ -890,7 +890,7 @@ void test_executeInstruction_given_0xE57E_and_PC_at_0x00_and_OV_bit_is_low_expec
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xFE, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnov do not affect status flags
 }
 
 //test for jumping backwards
@@ -907,7 +907,7 @@ void test_executeInstruction_given_0xE5E5_and_PC_at_0x3A_and_OV_bit_is_low_expec
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x06, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnov do not affect status flags
 }
 
 //test for jumping backwards (whole range)
@@ -924,7 +924,7 @@ void test_executeInstruction_given_0xE580_and_PC_at_0xFE_and_OV_bit_is_low_expec
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x00, pcl);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);     //test that bnov do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnov do not affect status flags
 }
 
 //test when OV bit is high, BNOV will not jump to target address, it continues to the next instruction instead, which causes PC to +2
@@ -941,7 +941,7 @@ void test_executeInstruction_given_0xE508_and_PC_at_0xB2_and_OV_bit_is_high_expe
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xB4, pcl);
-  TEST_ASSERT_EQUAL_HEX8(STATUS_OV, status);         //test that bnov do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(STATUS_OV, status);    //test that bnov do not affect status flags
 }
 
 //----------------------------TEST MOVWF---------------------------------
@@ -968,9 +968,9 @@ void test_executeInstruction_given_0x6E16_expect_movwf_called_and_access_to_0x16
   executeInstruction(codeMemory);
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x5A, fileRegisters[0x16]);
-  TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0x716]);     //check that the movwf instruction do not accidentally store the data in these file registers
+  TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0x716]);       //check that the movwf instruction do not accidentally store the data in these file registers
   TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0xF16]);
-  TEST_ASSERT_EQUAL_HEX8(0x5A, wreg);                     //movwf instruction does not affect the data stored in wreg
+  TEST_ASSERT_EQUAL_HEX8(0x5A, wreg);                       //movwf instruction does not affect the data stored in wreg
 }
 
 //movwf   0xB9, ACCESS   ==> 0110 1110 1011 1001(0x6EB9)
