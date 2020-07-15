@@ -1,4 +1,5 @@
 #include "PIC18sim.h"
+#include  <stdint.h>
 
 InstructionExecutor pic18ExecutionTable[256] = {
  [0x24] = addwf, addwf, addwf, addwf,
@@ -17,7 +18,11 @@ InstructionExecutor pic18ExecutionTable[256] = {
 };
 
 // Range of file register is 0x000 to 0xFFF
-int8_t fileRegisters[0x1000];
+uint8_t fileRegisters[0x1000];
+
+// Max range of code memory: 0x000000 - 0x1FFFFF
+// Range of code memory for this simulator: 0x0000 - 0xffff
+uint8_t codeMemory[0x10000];
 
 /* Signed 8 bit
 
@@ -87,26 +92,13 @@ codePtr ---> 45         0x101
              xx  (high) 0x103
 */
 
-uint8_t *executeInstruction(uint8_t *codePtr) {
+void executeInstruction() {
+  uint8_t *codePtr = &codeMemory[pc];
   InstructionExecutor executor = pic18ExecutionTable[codePtr[1]];
-  return executor(codePtr);
+  executor();
 }
 
-
-/*
-Direction     (d):    0 ==> WREG , 1 ==> file register
-Bank          (a):    0 ==> ACCESS BANK, 1 ==> BANKED
-File Register (f):    range from 0 to 255
-
-Mnemonic: addwf f, d, a
-Opcode: 0010 01da ffff ffff
-*/
-uint8_t *addwf(uint8_t *codePtr) {
-  //execute instruction
-  int addr = (uint8_t)codePtr[0];
-  int d = codePtr[1] & 0x02;
-  int a = codePtr[1] & 0x01;
-
+int adjustAddrForBankedOrAccess(int a, int addr) {
   if(a) {
     //BANKED
     addr += (unsigned int)bsr*0x100;
@@ -116,6 +108,26 @@ uint8_t *addwf(uint8_t *codePtr) {
       //Adjust the address if it is in SFR region
        addr += 0xf00;
   }
+  return addr;
+}
+
+/*
+Direction     (d):    0 ==> WREG , 1 ==> file register
+Bank          (a):    0 ==> ACCESS BANK, 1 ==> BANKED
+File Register (f):    range from 0 to 255
+
+Mnemonic: addwf f, d, a
+Opcode: 0010 01da ffff ffff
+*/
+void addwf() {
+  //execute instruction
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
+  int d = codePtr[1] & 0x02;
+  int a = codePtr[1] & 0x01;
+
+  int addr = adjustAddrForBankedOrAccess(a, address);
+
   if(d) {
     //d is a 1 ==> store result in file register
     fileRegisters[addr] = add(fileRegisters[addr], wreg);
@@ -123,28 +135,23 @@ uint8_t *addwf(uint8_t *codePtr) {
     //d is a 0 ==> wreg
     wreg = add(fileRegisters[addr], wreg);
   }
-  return NULL;
+  pc += 2;
 }
 
 /*
 Mnemonic: incf   f, d, a
 Opcode: 0010 10da ffff ffff
 */
-uint8_t *incf(uint8_t *codePtr) {
+void incf() {
   //execute instruction
-  int addr = (uint8_t)codePtr[0];
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
   int d = codePtr[1] & 0x02;
   int a = codePtr[1] & 0x01;
 
-  if(a) {
-    //BANKED
-    addr += (unsigned int)bsr*0x100;
-  }else {
-    //ACCESS
-    if(addr > 0x5F)
-      //Adjust the address if it is in SFR region
-       addr += 0xF00;
-  }
+  int addr = adjustAddrForBankedOrAccess(a, address);
+
+
   if(d) {
     //d is a 1 ==> store result in file register
     fileRegisters[addr] = add(fileRegisters[addr], 1);
@@ -152,32 +159,25 @@ uint8_t *incf(uint8_t *codePtr) {
     //d is a 0 ==> wreg
     wreg = add(fileRegisters[addr], 1);
   }
-  return NULL;
+  pc += 2;
 }
 
 /*
 Mnemonic: clrf   f, a
 Opcode: 0110 101a ffff ffff
 */
-uint8_t *clrf(uint8_t *codePtr) {
+void clrf() {
   //execute instruction
-  int addr = (uint8_t)codePtr[0];
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
 
-  if(a) {
-    //BANKED
-    addr += (unsigned int)bsr*0x100;
-  }else {
-    //ACCESS
-    if(addr > 0x5F)
-      //Adjust the address if it is in SFR region
-       addr += 0xF00;
-  }
+  int addr = adjustAddrForBankedOrAccess(a, address);
 
   fileRegisters[addr] = 0x00;
   status |= STATUS_Z;
 
-  return NULL;
+  pc += 2;
 }
 
 /*
@@ -188,21 +188,14 @@ File Register (f):    range from 0 to 255
 Mnemonic: bsf f, b, a
 Opcode: 1000 bbba ffff ffff
 */
-uint8_t *bsf(uint8_t *codePtr) {
+void bsf() {
   //execute instruction
-  int addr = (uint8_t)codePtr[0];
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
   int b = (codePtr[1] & 0x0E) >> 1;
 
-  if(a) {
-    //BANKED
-    addr += (unsigned int)bsr*0x100;
-  }else {
-    //ACCESS
-    if(addr > 0x5F)
-      //Adjust the address if it is in SFR region
-       addr += 0xF00;
-  }
+  int addr = adjustAddrForBankedOrAccess(a, address);
 
   switch(b) {
     case 0: fileRegisters[addr] |= 0x01;
@@ -222,29 +215,21 @@ uint8_t *bsf(uint8_t *codePtr) {
     case 7: fileRegisters[addr] |= 0x80;
             break;
   }
-  return NULL;
+  pc += 2;
 }
 
 /*
 Mnemonic: bcf f, b, a
 Opcode: 1001 bbba ffff ffff
 */
-uint8_t *bcf(uint8_t *codePtr) {
+void bcf() {
   //execute instruction
-  //execute instruction
-  int addr = (uint8_t)codePtr[0];
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
   int b = (codePtr[1] & 0x0E) >> 1;
 
-  if(a) {
-    //BANKED
-    addr += (unsigned int)bsr*0x100;
-  }else {
-    //ACCESS
-    if(addr > 0x5F)
-      //Adjust the address if it is in SFR region
-       addr += 0xF00;
-  }
+  int addr = adjustAddrForBankedOrAccess(a, address);
 
   switch(b) {
     case 0:  fileRegisters[addr] &= 0xFE;
@@ -264,7 +249,7 @@ uint8_t *bcf(uint8_t *codePtr) {
     case 7:  fileRegisters[addr] &= 0x7F;
              break;
   }
-  return NULL;
+  pc += 2;
 }
 
 /*
@@ -274,16 +259,15 @@ Mnemonic: bn n
 Opcode: 1110 0110 nnnn nnnn
 */
 
-uint8_t *bn(uint8_t *codePtr) {
+void bn() {
   //execute instruction
+  uint8_t *codePtr = &codeMemory[pc];
   int8_t n = codePtr[0];
 
   if(status & 0x10)
-    pcl = pcl + 2 + 2*n;
+    pc = pc + 2 + 2*n;
   else
-    pcl = pcl + 2;
-
-  return NULL;
+    pc += 2;
 }
 
 /*
@@ -291,16 +275,15 @@ Mnemonic: bnz n
 Opcode: 1110 0001 nnnn nnnn
 */
 
-uint8_t *bnz(uint8_t *codePtr) {
+void bnz() {
   //execute instruction
+  uint8_t *codePtr = &codeMemory[pc];
   int8_t n = codePtr[0];
 
   if(status & 0x04)
-    pcl = pcl + 2;
+    pc += 2;
   else
-    pcl = pcl + 2 + 2*n;
-
-  return NULL;
+    pc = pc + 2 + 2*n;
 }
 
 /*
@@ -308,16 +291,15 @@ Mnemonic: bnov n
 Opcode: 1110 0101 nnnn nnnn
 */
 
-uint8_t *bnov(uint8_t *codePtr) {
+void bnov() {
   //execute instruction
+  uint8_t *codePtr = &codeMemory[pc];
   int8_t n = codePtr[0];
 
   if(status & 0x08)
-    pcl = pcl + 2;
+    pc += 2;
   else
-    pcl = pcl + 2 + 2*n;
-
-  return NULL;
+    pc = pc + 2 + 2*n;
 }
 
 /*
@@ -328,24 +310,17 @@ Mnemonic: movwf f, a
 Opcode: 0110 111a ffff ffff
 */
 
-uint8_t *movwf(uint8_t *codePtr) {
+void movwf() {
   //execute instruction
-  int addr = (uint8_t)codePtr[0];
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
 
-  if(a) {
-    //BANKED
-    addr += (unsigned int)bsr*0x100;
-  }else {
-    //ACCESS
-    if(addr > 0x5F)
-      //Adjust the address if it is in SFR region
-       addr += 0xf00;
-  }
+  int addr = adjustAddrForBankedOrAccess(a, address);
 
   fileRegisters[addr] = wreg;
 
-  return NULL;
+  pc += 2;
 }
 
 /*
@@ -356,21 +331,15 @@ File Register (f):    range from 0 to 255
 Mnemonic: andwf f, d, a
 Opcode: 0001 01da ffff ffff
 */
-uint8_t *andwf(uint8_t *codePtr) {
+
+void andwf() {
   //execute instruction
-  int addr = (uint8_t)codePtr[0];
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
   int d = codePtr[1] & 0x02;
   int a = codePtr[1] & 0x01;
 
-  if(a) {
-    //BANKED
-    addr += (unsigned int)bsr*0x100;
-  }else {
-    //ACCESS
-    if(addr > 0x5F)
-      //Adjust the address if it is in SFR region
-       addr += 0xf00;
-  }
+  int addr = adjustAddrForBankedOrAccess(a, address);
 
   if(d) {
     //d is a 1 ==> store result in file register
@@ -387,7 +356,7 @@ uint8_t *andwf(uint8_t *codePtr) {
     if(wreg & 0x80)
       status |= STATUS_N;
   }
-  return NULL;
+  pc += 2;
 }
 
 /*
@@ -399,21 +368,14 @@ Mnemonic: rlcf f, d, a
 Opcode: 0011 01da ffff ffff
 */
 
-uint8_t *rlcf(uint8_t *codePtr) {
+void rlcf() {
   //execute instruction
-  int addr = (uint8_t)codePtr[0];
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
   int d = codePtr[1] & 0x02;
   int a = codePtr[1] & 0x01;
 
-  if(a) {
-    //BANKED
-    addr += (unsigned int)bsr*0x100;
-  }else {
-    //ACCESS
-    if(addr > 0x5F)
-      //Adjust the address if it is in SFR region
-       addr += 0xf00;
-  }
+  int addr = adjustAddrForBankedOrAccess(a, address);
 
   int shiftL = fileRegisters[addr];
 
@@ -441,5 +403,5 @@ uint8_t *rlcf(uint8_t *codePtr) {
   else
        status &= 0xFE;
 
- return NULL;
+  pc += 2;
 }
