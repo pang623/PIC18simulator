@@ -2,7 +2,7 @@
 #include "PIC18sim.h"
 #include "_testHelper.h"
 
-extern uint8_t fileRegisters[];
+extern int8_t fileRegisters[];
 
 void setUp(void)
 {
@@ -14,57 +14,57 @@ void tearDown(void)
 
 void test_add_given_0x7A_and_0x8E_expect_N0_OV0_Z0_DC1_C1() {
   status = STATUS_N | STATUS_Z |STATUS_OV;
-  int val = add(0x7A, 0x8E);
-  TEST_ASSERT_EQUAL(0x7A + 0x8E, val);
+  int8_t val = add(0x7A, 0x8E);
+  TEST_ASSERT_EQUAL((int8_t)(0x7A + 0x8E), val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_DC | STATUS_C, status);
 }
 
 void test_add_given_0x84_and_0x79_expect_N1_OV0_Z0_DC0_C0() {
   status = STATUS_DC | STATUS_Z | STATUS_C | STATUS_OV;
-  int val = add(0x84, 0x79);
-  TEST_ASSERT_EQUAL(0x84 + 0x79, val);
+  int8_t val = add(0x84, 0x79);
+  TEST_ASSERT_EQUAL((int8_t)(0x84 + 0x79), val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);
 }
 
 void test_add_given_0x7C_and_0x64_expect_N1_OV1_Z0_DC1_C0() {
   status = STATUS_Z | STATUS_C;
-  int val = add(0x7C, 0x64);
-  TEST_ASSERT_EQUAL(0x7C + 0x64, val);
+  int8_t val = add(0x7C, 0x64);
+  TEST_ASSERT_EQUAL((int8_t)(0x7C + 0x64), val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N | STATUS_DC | STATUS_OV, status);
 }
 
 void test_add_given_0x80_and_0x80_expect_N0_OV1_Z1_DC0_C1() {
   status = STATUS_N | STATUS_DC;
-  int val = add(0x80, 0x80);
-  TEST_ASSERT_EQUAL(0x80 + 0x80, val);
+  int8_t val = add(0x80, 0x80);
+  TEST_ASSERT_EQUAL((int8_t)(0x80 + 0x80), val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_Z | STATUS_C | STATUS_OV, status);
 }
 
 void test_add_given_0x00_and_0x00_expect_N0_OV0_Z1_DC0_C0() {
   status = STATUS_N | STATUS_DC | STATUS_OV | STATUS_C;
-  int val = add(0x00, 0x00);
-  TEST_ASSERT_EQUAL(0x00 + 0x00, val);
+  int8_t val = add(0x00, 0x00);
+  TEST_ASSERT_EQUAL((int8_t)(0x00 + 0x00), val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);
 }
 
 void test_add_given_0xFD_and_0x9A_expect_N1_OV0_Z0_DC1_C1() {
   status = STATUS_OV | STATUS_Z;
-  int val = add(0xFD, 0x9A);
-  TEST_ASSERT_EQUAL(0xFD + 0x9A, val);
+  int8_t val = add(0xFD, 0x9A);
+  TEST_ASSERT_EQUAL((int8_t)(0xFD + 0x9A), val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N | STATUS_C | STATUS_DC, status);
 }
 
 void test_add_given_0x05_and_0x0A_expect_N0_OV0_Z0_DC0_C0() {
   status = STATUS_OV | STATUS_Z | STATUS_DC | STATUS_N | STATUS_C;
-  int val = add(0x05, 0x0A);
-  TEST_ASSERT_EQUAL(0x05 + 0x0A, val);
+  int8_t val = add(0x05, 0x0A);
+  TEST_ASSERT_EQUAL((int8_t)(0x05 + 0x0A), val);
   TEST_ASSERT_EQUAL_HEX8(0x00, status);
 }
 
 void test_add_given_0x7F_and_0x81_expect_N0_OV0_Z1_DC1_C1() {
   status = STATUS_OV | STATUS_N;
-  int val = add(0x7F, 0x81);
-  TEST_ASSERT_EQUAL(0x7F + 0x81, val);
+  int8_t val = add(0x7F, 0x81);
+  TEST_ASSERT_EQUAL((int8_t)(0x7F + 0x81), val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_DC | STATUS_Z, status);
 }
 

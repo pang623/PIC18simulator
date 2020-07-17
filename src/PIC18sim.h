@@ -20,13 +20,13 @@ struct _21bitInteger {
 #define STATUS_OV   (1 << 3)
 #define STATUS_N    (1 << 4)
 
-extern uint8_t fileRegisters[];
+extern int8_t fileRegisters[];
 extern uint8_t codeMemory[];
 
 //InstructionExecutor is a pointer to function taking in no arg
 typedef void(*InstructionExecutor)(void);
 
-int add(int v1, int v2);
+int8_t add(int v1, int v2);
 
 void executeInstruction();
 void addwf();

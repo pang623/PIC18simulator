@@ -18,7 +18,7 @@ InstructionExecutor pic18ExecutionTable[256] = {
 };
 
 // Range of file register is 0x000 to 0xFFF
-uint8_t fileRegisters[0x1000];
+int8_t fileRegisters[0x1000];
 
 // Max range of code memory: 0x000000 - 0x1FFFFF
 // Range of code memory for this simulator: 0x0000 - 0xffff
@@ -44,8 +44,8 @@ uint8_t codeMemory[0x10000];
 
  */
 
-int add(int v1, int v2) {
-  int result = v1 + v2;
+int8_t add(int v1, int v2) {
+  int8_t result = v1 + v2;
   int lowNibble_v1 = v1 & 0x0F;
   int lowNibble_v2 = v2 & 0x0F;
   int highNibble_v1 = (v1 & 0xF0) >> 4;
@@ -61,7 +61,7 @@ int add(int v1, int v2) {
   //Clear status flags
   status = 0x00;
 
-  if((int8_t)result == 0x00)
+  if(result == 0x00)
     status |= STATUS_Z;      //Set Z flag to 1
   if(result & 0x80)
     status |= STATUS_N;      //Set N flag to 1
