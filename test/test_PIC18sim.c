@@ -2,7 +2,7 @@
 #include "PIC18sim.h"
 #include "_testHelper.h"
 
-extern int8_t fileRegisters[];
+extern uint8_t fileRegisters[];
 
 void setUp(void)
 {
@@ -14,57 +14,57 @@ void tearDown(void)
 
 void test_add_given_0x7A_and_0x8E_expect_N0_OV0_Z0_DC1_C1() {
   status = STATUS_N | STATUS_Z |STATUS_OV;
-  int8_t val = add(0x7A, 0x8E);
-  TEST_ASSERT_EQUAL((int8_t)(0x7A + 0x8E), val);
+  int val = add(0x7A, 0x8E);
+  TEST_ASSERT_EQUAL(0x7A + 0x8E, val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_DC | STATUS_C, status);
 }
 
 void test_add_given_0x84_and_0x79_expect_N1_OV0_Z0_DC0_C0() {
   status = STATUS_DC | STATUS_Z | STATUS_C | STATUS_OV;
-  int8_t val = add(0x84, 0x79);
-  TEST_ASSERT_EQUAL((int8_t)(0x84 + 0x79), val);
+  int val = add(0x84, 0x79);
+  TEST_ASSERT_EQUAL(0x84 + 0x79, val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);
 }
 
 void test_add_given_0x7C_and_0x64_expect_N1_OV1_Z0_DC1_C0() {
   status = STATUS_Z | STATUS_C;
-  int8_t val = add(0x7C, 0x64);
-  TEST_ASSERT_EQUAL((int8_t)(0x7C + 0x64), val);
+  int val = add(0x7C, 0x64);
+  TEST_ASSERT_EQUAL(0x7C + 0x64, val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N | STATUS_DC | STATUS_OV, status);
 }
 
 void test_add_given_0x80_and_0x80_expect_N0_OV1_Z1_DC0_C1() {
   status = STATUS_N | STATUS_DC;
-  int8_t val = add(0x80, 0x80);
-  TEST_ASSERT_EQUAL((int8_t)(0x80 + 0x80), val);
+  int val = add(0x80, 0x80);
+  TEST_ASSERT_EQUAL(0x80 + 0x80, val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_Z | STATUS_C | STATUS_OV, status);
 }
 
 void test_add_given_0x00_and_0x00_expect_N0_OV0_Z1_DC0_C0() {
   status = STATUS_N | STATUS_DC | STATUS_OV | STATUS_C;
-  int8_t val = add(0x00, 0x00);
-  TEST_ASSERT_EQUAL((int8_t)(0x00 + 0x00), val);
+  int val = add(0x00, 0x00);
+  TEST_ASSERT_EQUAL(0x00 + 0x00, val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);
 }
 
 void test_add_given_0xFD_and_0x9A_expect_N1_OV0_Z0_DC1_C1() {
   status = STATUS_OV | STATUS_Z;
-  int8_t val = add(0xFD, 0x9A);
-  TEST_ASSERT_EQUAL((int8_t)(0xFD + 0x9A), val);
+  int val = add(0xFD, 0x9A);
+  TEST_ASSERT_EQUAL(0xFD + 0x9A, val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N | STATUS_C | STATUS_DC, status);
 }
 
 void test_add_given_0x05_and_0x0A_expect_N0_OV0_Z0_DC0_C0() {
   status = STATUS_OV | STATUS_Z | STATUS_DC | STATUS_N | STATUS_C;
-  int8_t val = add(0x05, 0x0A);
-  TEST_ASSERT_EQUAL((int8_t)(0x05 + 0x0A), val);
+  int val = add(0x05, 0x0A);
+  TEST_ASSERT_EQUAL(0x05 + 0x0A, val);
   TEST_ASSERT_EQUAL_HEX8(0x00, status);
 }
 
 void test_add_given_0x7F_and_0x81_expect_N0_OV0_Z1_DC1_C1() {
   status = STATUS_OV | STATUS_N;
-  int8_t val = add(0x7F, 0x81);
-  TEST_ASSERT_EQUAL((int8_t)(0x7F + 0x81), val);
+  int val = add(0x7F, 0x81);
+  TEST_ASSERT_EQUAL(0x7F + 0x81, val);
   TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_DC | STATUS_Z, status);
 }
 
@@ -213,6 +213,88 @@ void test_executeInstruction_given_0x257D_expect_addwf_called_and_access_to_0xB7
   TEST_ASSERT_EQUAL_PTR(0x88DE + 2, pc);
 }
 
+//----------------------------TEST ADDWFC---------------------------------
+
+/*
+Direction     (d):    0 ==> WREG , 1 ==> file register
+Bank          (a):    0 ==> ACCESS BANK, 1 ==> BANKED
+File Register (f):    range from 0 to 255
+*/
+
+//  0010 00da ffff ffff
+//addwfc   0x20, f, ACCESS   ==> 0010 0010 0010 0000(0x2220)
+void test_executeInstruction_given_0x2220_expect_addwfc_called_and_access_to_0x20_with_the_result_stored_in_fileRegister(void) {
+  //Setup test fixture
+  uint8_t machineCode[] = {0x20, 0x22, 0x00, 0xff};
+  //Carry flag input(C is 1)
+  status |= STATUS_C;
+  //Set WREG
+  wreg = 0xFF;
+  //Set content of target file reg
+  fileRegisters[0x20] = 0xFF;
+  fileRegisters[0x220] = 0x00;
+  fileRegisters[0xF20] = 0x00;
+  //Copy instructions to the code memory
+  copyCodeToCodeMemory(machineCode, pc = 0x6612);
+  //Run the code under test
+  executeInstruction();
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0x20]);
+  TEST_ASSERT_EQUAL_HEX8(0xFF, wreg);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_DC | STATUS_N, status);
+  TEST_ASSERT_EQUAL_PTR(0x6612 + 2, pc);
+}
+
+//  0010 00da ffff ffff
+//addwfc   0xF4, w, BANKED   ==> 0010 0001 1111 0100(0x21F4)
+void test_executeInstruction_given_0x21F4_expect_addwfc_called_and_access_to_0xCF4_with_the_result_stored_in_wreg(void) {
+  //Setup test fixture
+  uint8_t machineCode[] = {0xF4, 0x21, 0x00, 0xff};
+  //Carry flag input(C is 1)
+  status |= STATUS_C;
+  //Set BSR
+  bsr = 0xC;
+  //Set WREG
+  wreg = 0x4D;
+  //Set content of target file reg
+  fileRegisters[0xF4] = 0x00;
+  fileRegisters[0xCF4] = 0x02;
+  fileRegisters[0xFF4] = 0x00;
+  //Copy instructions to the code memory
+  copyCodeToCodeMemory(machineCode, pc = 0xAA20);
+  //Run the code under test
+  executeInstruction();
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x02, fileRegisters[0xCF4]);
+  TEST_ASSERT_EQUAL_HEX8(0x50, wreg);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_DC, status);
+  TEST_ASSERT_EQUAL_PTR(0xAA20 + 2, pc);
+}
+
+//  0010 00da ffff ffff
+//addwfc   0x7A, w, ACCESS   ==> 0010 0000 0111 1010(0x207A)
+void test_executeInstruction_given_0x207A_expect_addwfc_called_and_access_to_0xF7A_with_the_result_stored_in_wreg(void) {
+  //Setup test fixture
+  uint8_t machineCode[] = {0x7A, 0x20, 0x00, 0xff};
+  //Carry flag input(C is 0)
+  status &= ~STATUS_C;
+  //Set WREG
+  wreg = 0xFE;
+  //Set content of target file reg
+  fileRegisters[0x7A] = 0x00;
+  fileRegisters[0xD7A] = 0x00;
+  fileRegisters[0xF7A] = 0x80;
+  //Copy instructions to the code memory
+  copyCodeToCodeMemory(machineCode, pc = 0x9B8A);
+  //Run the code under test
+  executeInstruction();
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_HEX8(0x80, fileRegisters[0xF7A]);
+  TEST_ASSERT_EQUAL_HEX8(0x7E, wreg);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_OV, status);
+  TEST_ASSERT_EQUAL_PTR(0x9B8A + 2, pc);
+}
+
 //----------------------------TEST INCF---------------------------------
 
 /*
@@ -234,6 +316,8 @@ void test_executeInstruction_given_0x2A10_expect_incf_called_and_access_to_0x10_
   fileRegisters[0xF10] = 0x00;
   //Copy instructions to the code memory
   copyCodeToCodeMemory(machineCode, pc = 0x0012);
+  //Clear the status register for testing
+  status = 0x00;
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
@@ -256,6 +340,8 @@ void test_executeInstruction_given_0x284D_expect_incf_called_and_access_to_0x4D_
   fileRegisters[0xF4D] = 0x00;
   //Copy instructions to the code memory
   copyCodeToCodeMemory(machineCode, pc = 0xF60A);
+  //Clear the status register for testing
+  status = 0x00;
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output

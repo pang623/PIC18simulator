@@ -2,6 +2,7 @@
 #include  <stdint.h>
 
 InstructionExecutor pic18ExecutionTable[256] = {
+ [0x20] = addwfc, addwfc, addwfc, addwfc,
  [0x24] = addwf, addwf, addwf, addwf,
  [0x28] = incf, incf, incf, incf,
  [0x6A] = clrf, clrf,
@@ -18,7 +19,7 @@ InstructionExecutor pic18ExecutionTable[256] = {
 };
 
 // Range of file register is 0x000 to 0xFFF
-int8_t fileRegisters[0x1000];
+uint8_t fileRegisters[0x1000];
 
 // Max range of code memory: 0x000000 - 0x1FFFFF
 // Range of code memory for this simulator: 0x0000 - 0xffff
@@ -44,42 +45,48 @@ uint8_t codeMemory[0x10000];
 
  */
 
-int8_t add(int v1, int v2) {
-  int8_t result = v1 + v2;
+int add(int v1, int v2) {
+  int result = v1 + v2;
   int lowNibble_v1 = v1 & 0x0F;
   int lowNibble_v2 = v2 & 0x0F;
-  int highNibble_v1 = (v1 & 0xF0) >> 4;
-  int highNibble_v2 = (v2 & 0xF0) >> 4;
   int nibbleAddLow = lowNibble_v1 + lowNibble_v2;
-  int nibbleAddHigh;
 
-  if(nibbleAddLow > 0xF)
-    nibbleAddHigh = highNibble_v1 + highNibble_v2 + 1;
-  else
-    nibbleAddHigh = highNibble_v1 + highNibble_v2;
-
-  //Clear status flags
-  status = 0x00;
-
-  if(result == 0x00)
+  if((int8_t)result == 0x00)
     status |= STATUS_Z;      //Set Z flag to 1
+  else
+    status &= ~STATUS_Z;
+
   if(result & 0x80)
     status |= STATUS_N;      //Set N flag to 1
-  if(nibbleAddHigh > 0xF)
+  else
+    status &= ~STATUS_N;
+
+  if(result & 0x100)
     status |= STATUS_C;      //Set C flag to 1
+  else
+    status &= ~STATUS_C;
+
   if(nibbleAddLow > 0xF)
     status |= STATUS_DC;     //Set DC flag to 1
+  else
+    status &= ~STATUS_DC;
 
   //if both operands is positive, result must +ve, else set OV
   //if both operands is negative, result must -ve, else set OV
 
   if(v1 & 0x80 && v2 & 0x80){
-    if(!(result & 0x80))     //if signed bit of result is 0, Set OV flag
+    if(!(result & 0x80))     //if result is +ve, Set OV flag
       status |= STATUS_OV;
+    else
+      status &= ~STATUS_OV;
   }else if(!(v1 & 0x80) && !(v2 & 0x80)) {
     if(result & 0x80)
-      status |= STATUS_OV;   //if signed bit of result is 1, Set OV flag
-  }
+      status |= STATUS_OV;   //if result is -ve, Set OV flag
+    else
+      status &= ~STATUS_OV;
+  }else
+      status &= ~STATUS_OV;  //Clear OV flag if one operand is +ve and the other is -ve,
+                             //overflow will not occur when adding operands of different sign
   return result;
 }
 
@@ -120,7 +127,6 @@ Mnemonic: addwf f, d, a
 Opcode: 0010 01da ffff ffff
 */
 void addwf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int d = codePtr[1] & 0x02;
@@ -139,11 +145,40 @@ void addwf() {
 }
 
 /*
+Mnemonic: addwfc f, d, a
+Opcode: 0010 00da ffff ffff
+*/
+void addwfc() {
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
+  int d = codePtr[1] & 0x02;
+  int a = codePtr[1] & 0x01;
+
+  int addr = adjustAddrForBankedOrAccess(a, address);
+  int tempNum = add(status & 0x01, wreg);
+  int DC_flag = status & 0x02;
+
+  if(d) {
+    //d is a 1 ==> store result in file register
+    fileRegisters[addr] = add(tempNum, fileRegisters[addr]);
+  }else {
+    //d is a 0 ==> wreg
+    wreg = add(tempNum, fileRegisters[addr]);
+  }
+  
+  status |= DC_flag;         //if the first execution of add function
+                             //set DC flag and the second execution does
+                             //not, after the whole calculation is done,
+                             //the DC flag will still be set although it
+                             //is cleared by the second execution
+  pc += 2;
+}
+
+/*
 Mnemonic: incf   f, d, a
 Opcode: 0010 10da ffff ffff
 */
 void incf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int d = codePtr[1] & 0x02;
@@ -167,7 +202,6 @@ Mnemonic: clrf   f, a
 Opcode: 0110 101a ffff ffff
 */
 void clrf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
@@ -189,7 +223,6 @@ Mnemonic: bsf f, b, a
 Opcode: 1000 bbba ffff ffff
 */
 void bsf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
@@ -223,7 +256,6 @@ Mnemonic: bcf f, b, a
 Opcode: 1001 bbba ffff ffff
 */
 void bcf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
@@ -260,7 +292,6 @@ Opcode: 1110 0110 nnnn nnnn
 */
 
 void bn() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int8_t n = codePtr[0];
 
@@ -276,7 +307,6 @@ Opcode: 1110 0001 nnnn nnnn
 */
 
 void bnz() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int8_t n = codePtr[0];
 
@@ -292,7 +322,6 @@ Opcode: 1110 0101 nnnn nnnn
 */
 
 void bnov() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int8_t n = codePtr[0];
 
@@ -311,7 +340,6 @@ Opcode: 0110 111a ffff ffff
 */
 
 void movwf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int a = codePtr[1] & 0x01;
@@ -333,7 +361,6 @@ Opcode: 0001 01da ffff ffff
 */
 
 void andwf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int d = codePtr[1] & 0x02;
@@ -369,7 +396,6 @@ Opcode: 0011 01da ffff ffff
 */
 
 void rlcf() {
-  //execute instruction
   uint8_t *codePtr = &codeMemory[pc];
   int address = (uint8_t)codePtr[0];
   int d = codePtr[1] & 0x02;
