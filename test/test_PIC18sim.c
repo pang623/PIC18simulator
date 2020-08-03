@@ -92,7 +92,7 @@ void test_executeInstruction_given_0x2645_expect_addwf_called_and_access_to_0x45
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x79, fileRegisters[0x45]);
+  TEST_ASSERT_EQUAL_HEX8(0x23 + 0x56, fileRegisters[0x45]);
   TEST_ASSERT_EQUAL_HEX8(0x23, wreg);
   TEST_ASSERT_EQUAL_HEX8(0x00, status);
   TEST_ASSERT_EQUAL_PTR(0x38FE + 2, pc);
@@ -115,7 +115,7 @@ void test_executeInstruction_given_0x2423_expect_addwf_called_and_access_to_0x23
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x6A, fileRegisters[0x23]);
-  TEST_ASSERT_EQUAL_HEX8(0xA2, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0x38 + 0x6A, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_OV | STATUS_N | STATUS_DC, status);
   TEST_ASSERT_EQUAL_PTR(0x1942 + 2, pc);
 }
@@ -136,7 +136,7 @@ void test_executeInstruction_given_0x2667_expect_addwf_called_and_access_to_0xf6
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x99, fileRegisters[0xf67]);
+  TEST_ASSERT_EQUAL_HEX8(0x56 + 0x43, fileRegisters[0xf67]);
   TEST_ASSERT_EQUAL_HEX8(0x56, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_OV | STATUS_N, status);
   TEST_ASSERT_EQUAL_PTR(0xE890 + 2, pc);
@@ -159,7 +159,7 @@ void test_executeInstruction_given_0x248F_expect_addwf_called_and_access_to_0xf8
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x32, fileRegisters[0xF8F]);
-  TEST_ASSERT_EQUAL_HEX8(0x8D, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0x32 + 0x5B, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_OV | STATUS_N, status);
   TEST_ASSERT_EQUAL_PTR(0x6902 + 2, pc);
 }
@@ -183,7 +183,7 @@ void test_executeInstruction_given_0x27A5_expect_addwf_called_and_access_to_0x8A
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x45, fileRegisters[0x8A5]);
+  TEST_ASSERT_EQUAL_HEX8(0x9C + 0xA9, fileRegisters[0x8A5]);
   TEST_ASSERT_EQUAL_HEX8(0x9C, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_DC | STATUS_OV, status);
   TEST_ASSERT_EQUAL_PTR(0xA02C + 2, pc);
@@ -208,7 +208,7 @@ void test_executeInstruction_given_0x257D_expect_addwf_called_and_access_to_0xB7
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xD8, fileRegisters[0xB7D]);
-  TEST_ASSERT_EQUAL_HEX8(0xD1, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0xF9 + 0xD8, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_N | STATUS_DC, status);
   TEST_ASSERT_EQUAL_PTR(0x88DE + 2, pc);
 }
@@ -239,7 +239,7 @@ void test_executeInstruction_given_0x2220_expect_addwfc_called_and_access_to_0x2
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0x20]);
+  TEST_ASSERT_EQUAL_HEX8(0xFF + 0xFF + 1, fileRegisters[0x20]);
   TEST_ASSERT_EQUAL_HEX8(0xFF, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_DC | STATUS_N, status);
   TEST_ASSERT_EQUAL_PTR(0x6612 + 2, pc);
@@ -266,7 +266,7 @@ void test_executeInstruction_given_0x21F4_expect_addwfc_called_and_access_to_0xC
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x02, fileRegisters[0xCF4]);
-  TEST_ASSERT_EQUAL_HEX8(0x50, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0x4D + 0x02 + 1, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_DC, status);
   TEST_ASSERT_EQUAL_PTR(0xAA20 + 2, pc);
 }
@@ -290,12 +290,12 @@ void test_executeInstruction_given_0x207A_expect_addwfc_called_and_access_to_0xF
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x80, fileRegisters[0xF7A]);
-  TEST_ASSERT_EQUAL_HEX8(0x7E, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0xFE + 0X80 + 0, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_OV, status);
   TEST_ASSERT_EQUAL_PTR(0x9B8A + 2, pc);
 }
 
-//----------------------------TEST INCF---------------------------------
+//----------------------------TEST INCF & DECF---------------------------------
 
 /*
 Direction     (d):    0 ==> WREG , 1 ==> file register
@@ -321,7 +321,7 @@ void test_executeInstruction_given_0x2A10_expect_incf_called_and_access_to_0x10_
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0x10]);
+  TEST_ASSERT_EQUAL_HEX8(0xFF + 1, fileRegisters[0x10]);
   TEST_ASSERT_EQUAL_HEX8(0x22, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_C | STATUS_DC | STATUS_Z, status);
   TEST_ASSERT_EQUAL_PTR(0x0012 + 2, pc);
@@ -335,7 +335,7 @@ void test_executeInstruction_given_0x284D_expect_incf_called_and_access_to_0x4D_
   //Set WREG
   wreg = 0x67;
   //Set content of target file reg
-  fileRegisters[0x4D]  = 0xDA;
+  fileRegisters[0x4D]  = 0x7F;
   fileRegisters[0xC4D] = 0x00;
   fileRegisters[0xF4D] = 0x00;
   //Copy instructions to the code memory
@@ -345,9 +345,9 @@ void test_executeInstruction_given_0x284D_expect_incf_called_and_access_to_0x4D_
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0xDA, fileRegisters[0x4D]);
-  TEST_ASSERT_EQUAL_HEX8(0xDB, wreg);
-  TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);
+  TEST_ASSERT_EQUAL_HEX8(0x7F, fileRegisters[0x4D]);
+  TEST_ASSERT_EQUAL_HEX8(0x7F + 1, wreg);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_OV | STATUS_N | STATUS_DC, status);
   TEST_ASSERT_EQUAL_PTR(0xF60A + 2, pc);
 }
 
@@ -367,17 +367,17 @@ void test_executeInstruction_given_0x2AA9_expect_incf_called_and_access_to_0xFA9
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0xC0, fileRegisters[0xFA9]);
+  TEST_ASSERT_EQUAL_HEX8(0xBF + 1, fileRegisters[0xFA9]);
   TEST_ASSERT_EQUAL_HEX8(0x9F, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_DC | STATUS_N, status);
   TEST_ASSERT_EQUAL_PTR(0x53AA + 2, pc);
 }
 
-//  0010 01da ffff ffff
-//incf   0xCD, w, ACCESS   ==> 0010 1000 1100 1101(0x28CD)
-void test_executeInstruction_given_0x28CD_expect_incf_called_and_access_to_0xFCD_with_the_result_stored_in_wreg(void) {
+//  0000 01da ffff ffff
+//decf   0xCD, w, ACCESS   ==> 0000 0100 1100 1101(0x04CD)
+void test_executeInstruction_given_0x04CD_expect_decf_called_and_access_to_0xFCD_with_the_result_stored_in_wreg(void) {
   //Setup test fixture
-  uint8_t machineCode[] = {0xCD, 0x28, 0x00, 0xff};
+  uint8_t machineCode[] = {0xCD, 0x04, 0x00, 0xff};
   //Set WREG
   wreg = 0xE3;
   //Set content of target file reg
@@ -390,55 +390,55 @@ void test_executeInstruction_given_0x28CD_expect_incf_called_and_access_to_0xFCD
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xAA, fileRegisters[0xFCD]);
-  TEST_ASSERT_EQUAL_HEX8(0xAB, wreg);
-  TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);
+  TEST_ASSERT_EQUAL_HEX8(0xAA - 1, wreg);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_N | STATUS_C | STATUS_DC, status);
   TEST_ASSERT_EQUAL_PTR(0xDABC + 2, pc);
 }
 
-//  0010 01da ffff ffff
-//incf   0x38, f, BANKED   ==> 0010 1011 0011 1000(0x2B38)
-void test_executeInstruction_given_0x2B38_expect_incf_called_and_access_to_0x138_with_the_result_stored_in_fileRegister(void) {
+//  0000 01da ffff ffff
+//decf   0x38, f, BANKED   ==> 0000 0111 0011 1000(0x0738)
+void test_executeInstruction_given_0x0738_expect_decf_called_and_access_to_0x138_with_the_result_stored_in_fileRegister(void) {
   //Setup test fixture
-  uint8_t machineCode[] = {0x38, 0x2B, 0x00, 0xff};
+  uint8_t machineCode[] = {0x38, 0x07, 0x00, 0xff};
   //Set BSR
   bsr = 0x1;
   //Set WREG
-  wreg = 0xFE;
+  wreg = 0xA9;
   //Set content of target file reg
   fileRegisters[0x38]  = 0x00;
-  fileRegisters[0x138] = 0x23;
+  fileRegisters[0x138] = 0xFF;
   fileRegisters[0xF38] = 0x00;
   //Copy instructions to the code memory
   copyCodeToCodeMemory(machineCode, pc = 0xFE60);
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x24, fileRegisters[0x138]);
-  TEST_ASSERT_EQUAL_HEX8(0xFE, wreg);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);
+  TEST_ASSERT_EQUAL_HEX8(0xFF - 1, fileRegisters[0x138]);
+  TEST_ASSERT_EQUAL_HEX8(0xA9, wreg);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_N | STATUS_C | STATUS_DC, status);
   TEST_ASSERT_EQUAL_PTR(0xFE60 + 2, pc);
 }
 
-//  0010 01da ffff ffff
-//incf   0xFF, w, BANKED   ==> 0010 1001 1111 1111(0x29FF)
-void test_executeInstruction_given_0x29FF_expect_incf_called_and_access_to_0xEFF_with_the_result_stored_in_wreg(void) {
+//  0000 01da ffff ffff
+//decf   0xFF, w, BANKED   ==> 0000 0101 1111 1111(0x05FF)
+void test_executeInstruction_given_0x05FF_expect_decf_called_and_access_to_0xEFF_with_the_result_stored_in_wreg(void) {
   //Setup test fixture
-  uint8_t machineCode[] = {0xFF, 0x29, 0x00, 0xFE};
+  uint8_t machineCode[] = {0xFF, 0x05, 0x00, 0xFE};
   //Set BSR
   bsr = 0xE;
   //Set WREG
   wreg = 0x2B;
   //Set content of target file reg
-  fileRegisters[0xFF]  = 0x00;
-  fileRegisters[0xEFF] = 0xD0;
-  fileRegisters[0xFFF] = 0x00;
+  fileRegisters[0xFF]  = 0x10;
+  fileRegisters[0xEFF] = 0x00;
+  fileRegisters[0xFFF] = 0x10;
   //Copy instructions to the code memory
   copyCodeToCodeMemory(machineCode, pc = 0x6666);
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0xD0, fileRegisters[0xEFF]);
-  TEST_ASSERT_EQUAL_HEX8(0xD1, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0xEFF]);
+  TEST_ASSERT_EQUAL_HEX8(0x00 - 1, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);
   TEST_ASSERT_EQUAL_PTR(0x6666 + 2, pc);
 }
@@ -1219,7 +1219,7 @@ void test_executeInstruction_given_0x1602_expect_andwf_called_and_access_to_0x02
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x86, fileRegisters[0x02]);
+  TEST_ASSERT_EQUAL_HEX8(0x9E & 0xE7, fileRegisters[0x02]);
   TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0xC02]);       //check that the andwf instruction does not accidentally AND wreg with these file register
   TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0xF02]);
   TEST_ASSERT_EQUAL_HEX8(0x9E, wreg);                       //check that result is not stored in wreg
@@ -1246,7 +1246,7 @@ void test_executeInstruction_given_0x145F_expect_andwf_called_and_access_to_0x5F
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x7C, fileRegisters[0x5F]);        //check that the result is not stored in file register
-  TEST_ASSERT_EQUAL_HEX8(0x38, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0x39 & 0x7C, wreg);
   TEST_ASSERT_EQUAL_HEX8(0x00, status);
   TEST_ASSERT_EQUAL_PTR(0x0330 + 2, pc);
 }
@@ -1269,7 +1269,7 @@ void test_executeInstruction_given_0x1688_expect_andwf_called_and_access_to_0xF8
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0xF88]);
+  TEST_ASSERT_EQUAL_HEX8(0x55 & 0xAA, fileRegisters[0xF88]);
   TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0x188]);
   TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0x88]);
   TEST_ASSERT_EQUAL_HEX8(0xAA, wreg);
@@ -1296,7 +1296,7 @@ void test_executeInstruction_given_0x14FF_expect_andwf_called_and_access_to_0xFF
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0xED, fileRegisters[0xFFF]);
-  TEST_ASSERT_EQUAL_HEX8(0xC0, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0xED & 0xD2, wreg);
   TEST_ASSERT_EQUAL_HEX8(STATUS_N, status);
   TEST_ASSERT_EQUAL_PTR(0xEFFE + 2, pc);
 }
@@ -1321,7 +1321,7 @@ void test_executeInstruction_given_0x1700_expect_andwf_called_and_access_to_0xE0
   //Run the code under test
   executeInstruction();
   //Verify the code has expected output
-  TEST_ASSERT_EQUAL_HEX8(0x00, fileRegisters[0xE00]);
+  TEST_ASSERT_EQUAL_HEX8(0x39 & 0xC6, fileRegisters[0xE00]);
   TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0xF00]);
   TEST_ASSERT_EQUAL_HEX8(0xFF, fileRegisters[0x00]);
   TEST_ASSERT_EQUAL_HEX8(0x39, wreg);
@@ -1350,7 +1350,7 @@ void test_executeInstruction_given_0x1548_expect_andwf_called_and_access_to_0x24
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_HEX8(0x1A, fileRegisters[0x248]);
-  TEST_ASSERT_EQUAL_HEX8(0x12, wreg);
+  TEST_ASSERT_EQUAL_HEX8(0x1A & 0x93, wreg);
   TEST_ASSERT_EQUAL_HEX8(0x00, status);
   TEST_ASSERT_EQUAL_PTR(0x3456 + 2, pc);
 }

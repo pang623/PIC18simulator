@@ -32,6 +32,7 @@ void executeInstruction();
 void addwf();
 void addwfc();
 void incf();
+void decf();
 void clrf();
 void bsf();
 void bcf();

@@ -2,6 +2,7 @@
 #include  <stdint.h>
 
 InstructionExecutor pic18ExecutionTable[256] = {
+ [0x04] = decf, decf, decf, decf,
  [0x20] = addwfc, addwfc, addwfc, addwfc,
  [0x24] = addwf, addwf, addwf, addwf,
  [0x28] = incf, incf, incf, incf,
@@ -186,13 +187,34 @@ void incf() {
 
   int addr = adjustAddrForBankedOrAccess(a, address);
 
-
   if(d) {
     //d is a 1 ==> store result in file register
     fileRegisters[addr] = add(fileRegisters[addr], 1);
   }else {
     //d is a 0 ==> wreg
     wreg = add(fileRegisters[addr], 1);
+  }
+  pc += 2;
+}
+
+/*
+Mnemonic: decf   f, d, a
+Opcode: 0000 01da ffff ffff
+*/
+void decf() {
+  uint8_t *codePtr = &codeMemory[pc];
+  int address = (uint8_t)codePtr[0];
+  int d = codePtr[1] & 0x02;
+  int a = codePtr[1] & 0x01;
+
+  int addr = adjustAddrForBankedOrAccess(a, address);
+
+  if(d) {
+    //d is a 1 ==> store result in file register
+    fileRegisters[addr] = add(fileRegisters[addr], 0xFF);
+  }else {
+    //d is a 0 ==> wreg
+    wreg = add(fileRegisters[addr], 0xFF);
   }
   pc += 2;
 }
