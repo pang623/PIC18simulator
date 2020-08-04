@@ -918,13 +918,16 @@ void test_executeInstruction_given_0xE608_and_PC_at_0xFAB2_and_NEGATIVE_bit_is_l
   TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bn do not affect status flags
 }
 
-//----------------------------TEST BNZ---------------------------------
+//----------------------------TEST BNZ and BC---------------------------------
 
 /*
 Relative address    (n):  -128 to 127
 
 Mnemonic: bnz n
 Opcode: 1110 0001 nnnn nnnn
+
+Mnemonic: bc n
+Opcode: 1110 0010 nnnn nnnn
 
   n is the number of lines of instruction that need to be jumped
 
@@ -947,23 +950,6 @@ void test_executeInstruction_given_0xE10A_and_PC_at_0x3A8E_and_ZERO_bit_is_low_e
   TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
 }
 
-//test for jumping forward (whole range)
-//  PC
-// 0x3E00   bnz   0x3EFE   ==> 1110 0001 0111 1110(0xE17E)
-void test_executeInstruction_given_0xE17E_and_PC_at_0x3E00_and_ZERO_bit_is_low_expect_bnz_called_and_PC_is_0x3EFE(void) {
-  //Setup test fixture
-  uint8_t machineCode[] = {0x7E, 0xE1, 0x00, 0xff};
-  //Copy instructions to the code memory
-  copyCodeToCodeMemory(machineCode, pc = 0x3E00);
-  //Clear status flag (zero)
-  status = 0x00;
-  //Run the code under test
-  executeInstruction();
-  //Verify the code has expected output
-  TEST_ASSERT_EQUAL_PTR(0x3EFE, pc);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
-}
-
 //test for jumping backwards
 //  PC
 // 0xBEFA   bnz   0xBEDC   ==> 1110 0001 1111 0000(0xE1F0)
@@ -978,24 +964,7 @@ void test_executeInstruction_given_0xE1F0_and_PC_at_0xBEFA_and_ZERO_bit_is_low_e
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_PTR(0xBEDC, pc);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
-}
-
-//test for jumping backwards (whole range)
-//  PC
-// 0x11FE   bnz   0x1100   ==> 1110 0001 1000 0000(0xE180)
-void test_executeInstruction_given_0xE180_and_PC_at_0x11FE_and_ZERO_bit_is_low_expect_bnz_called_and_PC_is_0x1100(void) {
-  //Setup test fixture
-  uint8_t machineCode[] = {0x80, 0xE1, 0x00, 0xff};
-  //Copy instructions to the code memory
-  copyCodeToCodeMemory(machineCode, pc = 0x11FE);
-  //Clear status flag (zero)
-  status = 0x00;
-  //Run the code under test
-  executeInstruction();
-  //Verify the code has expected output
-  TEST_ASSERT_EQUAL_PTR(0x1100, pc);
-  TEST_ASSERT_EQUAL_HEX8(0x00, status);         //test that bnz do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);
 }
 
 //test when ZERO bit is high, BNZ will not jump to target address, it continues to the next instruction instead, which causes PC to +2
@@ -1012,7 +981,58 @@ void test_executeInstruction_given_0xE108_and_PC_at_0xAAB2_and_ZERO_bit_is_high_
   executeInstruction();
   //Verify the code has expected output
   TEST_ASSERT_EQUAL_PTR(0xAAB2 + 2, pc);
-  TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);     //test that bnz do not affect status flags
+  TEST_ASSERT_EQUAL_HEX8(STATUS_Z, status);
+}
+
+//test for jumping forward
+//  PC
+// 0xD82A   bc   0xD894   ==> 1110 0010 0011 0100(0xE234)
+void test_executeInstruction_given_0xE234_and_PC_at_0xD82A_and_CARRY_bit_is_high_expect_bc_called_and_PC_is_0xD894(void) {
+  //Setup test fixture
+  uint8_t machineCode[] = {0x34, 0xE2, 0x00, 0xff};
+  //Copy instructions to the code memory
+  copyCodeToCodeMemory(machineCode, pc = 0xD82A);
+  //Set status flag (carry)
+  status = STATUS_C;
+  //Run the code under test
+  executeInstruction();
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_PTR(0xD894, pc);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_C, status);         //test that bc do not affect status flags
+}
+
+//test for jumping backwards
+//  PC
+// 0x99CC   bc   0x9902   ==> 1110 0010 1001 1010(0xE29A)
+void test_executeInstruction_given_0xE29A_and_PC_at_0x99CC_and_CARRY_bit_is_high_expect_bc_called_and_PC_is_0x9902(void) {
+  //Setup test fixture
+  uint8_t machineCode[] = {0x9A, 0xE2, 0x00, 0xff};
+  //Copy instructions to the code memory
+  copyCodeToCodeMemory(machineCode, pc = 0x99CC);
+  //Set status flag (carry)
+  status = STATUS_C;
+  //Run the code under test
+  executeInstruction();
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_PTR(0x9902, pc);
+  TEST_ASSERT_EQUAL_HEX8(STATUS_C, status);
+}
+
+//test when CARRY bit is low, BC will not jump to target address, it continues to the next instruction instead, which causes PC to +2
+//  PC
+// 0x1234   bc   0x12AA   ==> 1110 0010 0011 1010(0xE23A)
+void test_executeInstruction_given_0xE23A_and_PC_at_0x1234_and_CARRY_bit_is_low_expect_bc_called_and_PC_is_0x1236(void) {
+  //Setup test fixture
+  uint8_t machineCode[] = {0x3A, 0xE2, 0x00, 0xff};
+  //Copy instructions to the code memory
+  copyCodeToCodeMemory(machineCode, pc = 0x1234);
+  //CLear status flag (carry)
+  status = 0x00;
+  //Run the code under test
+  executeInstruction();
+  //Verify the code has expected output
+  TEST_ASSERT_EQUAL_PTR(0x1234 + 2, pc);
+  TEST_ASSERT_EQUAL_HEX8(0x00, status);
 }
 
 //----------------------------TEST BNOV---------------------------------

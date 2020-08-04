@@ -12,9 +12,10 @@ InstructionExecutor pic18ExecutionTable[256] = {
           bcf, bcf, bcf, bcf, bcf, bcf, bcf, bcf,
  [0x80] = bsf, bsf, bsf, bsf, bsf, bsf, bsf, bsf,
           bsf, bsf, bsf, bsf, bsf, bsf, bsf, bsf,
- [0xE6] = bn,
  [0xE1] = bnz,
+ [0xE2] = bc,
  [0xE5] = bnov,
+ [0xE6] = bn,
  [0x14] = andwf, andwf, andwf, andwf,
  [0x34] = rlcf, rlcf, rlcf, rlcf,
 };
@@ -318,6 +319,21 @@ void bn() {
   int8_t n = codePtr[0];
 
   if(status & 0x10)
+    pc = pc + 2 + 2*n;
+  else
+    pc += 2;
+}
+
+/*
+Mnemonic: bc n
+Opcode: 1110 0010 nnnn nnnn
+*/
+
+void bc() {
+  uint8_t *codePtr = &codeMemory[pc];
+  int8_t n = codePtr[0];
+
+  if(status & 0x01)
     pc = pc + 2 + 2*n;
   else
     pc += 2;
